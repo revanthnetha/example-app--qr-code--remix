@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState } from "react";
 import { json, redirect } from "@remix-run/node";
 import {
@@ -26,6 +27,8 @@ import {
   PageActions,
 } from "@shopify/polaris";
 import { ImageIcon } from "@shopify/polaris-icons";
+
+import ColorSelectionPopup from "./auth.login/components/ColorSelectionPopup";
 
 import db from "../db.server";
 import { getQRCode, validateQRCode } from "../models/QRCode.server";
@@ -81,6 +84,15 @@ export async function action({ request, params }) {
 // [START state]
 export default function QRCodeForm() {
   const errors = useActionData()?.errors || {};
+
+  const [showColorPopup, setShowColorPopup] = useState(false);
+  const [selectedColor, setSelectedColor] = useState('');
+  const [isHovered, setIsHovered] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleColorSelect = (color) => {
+    setSelectedColor(color);
+  };
 
   const qrCode = useLoaderData();
   const [formState, setFormState] = useState(qrCode);
@@ -256,14 +268,27 @@ export default function QRCodeForm() {
               </EmptyState>
             )}
             <BlockStack gap="300">
+              
               <Button
                 disabled={!qrCode?.image}
-                url={qrCode?.image}
-                download
+                // url={qrCode?.image}
+                // download
                 variant="primary"
+                onClick={() => setShowColorPopup(true)}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+                onBlur={() => setIsHovered(false)}
+                tone={isHovered ? "critical" : "success"}
+                
               >
                 Download
               </Button>
+              {showColorPopup && (
+        <ColorSelectionPopup
+          onClose={() => setShowColorPopup(false)}
+          onColorSelect={handleColorSelect}
+        />
+      )}
               <Button
                 disabled={!qrCode.id}
                 url={`/qrcodes/${qrCode.id}`}
